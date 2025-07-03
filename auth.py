@@ -30,17 +30,25 @@ def register_patient():
         from models import Patient
         from database import db
         
+        # Get JSON data
+        json_data = request.get_json()
+        if not json_data:
+            return jsonify({'message': 'Données JSON manquantes'}), 400
+        
         schema = PatientRegistrationSchema()
-        data = schema.load(request.json)
+        try:
+            data = schema.load(json_data)
+        except Exception as validation_error:
+            return jsonify({'message': f'Erreur de validation: {str(validation_error)}'}), 400
         
         # Check if passwords match
         if data['password'] != data['confirm_password']:
-            return jsonify({'error': 'Les mots de passe ne correspondent pas'}), 400
+            return jsonify({'message': 'Les mots de passe ne correspondent pas'}), 400
         
         # Check if patient already exists
         existing_patient = Patient.query.filter_by(email=data['email']).first()
         if existing_patient:
-            return jsonify({'error': 'Un compte avec cet email existe déjà'}), 409
+            return jsonify({'message': 'Un compte avec cet email existe déjà'}), 409
         
         # Create new patient
         patient = Patient(
