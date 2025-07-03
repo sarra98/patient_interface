@@ -1,0 +1,227 @@
+<div class="container py-4">
+  <div class="fade-in">
+    <!-- Page Header -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <h1 class="h3 mb-1">
+              <i class="fas fa-plus-circle me-2 text-primary"></i>
+              Prendre un rendez-vous
+            </h1>
+            <p class="text-muted mb-0">Planifiez votre consultation médicale</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alerts -->
+    <div class="alert alert-success alert-dismissible fade show" *ngIf="successMessage">
+      <i class="fas fa-check-circle me-2"></i>
+      {{ successMessage }}
+      <div class="mt-2">
+        <small>Redirection vers vos rendez-vous...</small>
+      </div>
+    </div>
+
+    <div class="alert alert-danger alert-dismissible fade show" *ngIf="errorMessage">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      {{ errorMessage }}
+      <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+    </div>
+
+    <div class="row">
+      <!-- Doctor Information -->
+      <div class="col-lg-4 mb-4">
+        <div class="card h-100">
+          <div class="card-header">
+            <h5 class="mb-0">
+              <i class="fas fa-user-md me-2"></i>
+              Votre Médecin
+            </h5>
+          </div>
+          <div class="card-body">
+            <div *ngIf="isLoadingMedecins" class="text-center py-3">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Chargement...</span>
+              </div>
+            </div>
+            
+            <div *ngIf="!isLoadingMedecins && medecins.length > 0">
+              <div class="doctor-card" *ngFor="let medecin of medecins">
+                <div class="d-flex align-items-start">
+                  <div class="doctor-avatar me-3">
+                    <i class="fas fa-user-md"></i>
+                  </div>
+                  <div class="doctor-info flex-grow-1">
+                    <h6 class="mb-2">{{ medecin.nom_complet }}</h6>
+                    <p class="mb-1">
+                      <i class="fas fa-stethoscope me-2"></i>
+                      {{ medecin.specialite }}
+                    </p>
+                    <p class="mb-1" *ngIf="medecin.telephone">
+                      <i class="fas fa-phone me-2"></i>
+                      {{ medecin.telephone }}
+                    </p>
+                    <p class="mb-1" *ngIf="medecin.email">
+                      <i class="fas fa-envelope me-2"></i>
+                      {{ medecin.email }}
+                    </p>
+                    <p class="mb-0" *ngIf="medecin.horaires">
+                      <i class="fas fa-clock me-2"></i>
+                      {{ medecin.horaires }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div *ngIf="!isLoadingMedecins && medecins.length === 0" class="text-center py-3">
+              <i class="fas fa-exclamation-triangle fa-2x text-warning mb-2"></i>
+              <p class="text-muted">Aucun médecin disponible</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Appointment Form -->
+      <div class="col-lg-8">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0">
+              <i class="fas fa-calendar-plus me-2"></i>
+              Détails du rendez-vous
+            </h5>
+          </div>
+          <div class="card-body">
+            <form (ngSubmit)="onSubmit()" #appointmentForm="ngForm">
+              <!-- Doctor Selection -->
+              <div class="mb-3" *ngIf="medecins.length > 1">
+                <label for="medecin_id" class="form-label">Médecin *</label>
+                <select
+                  class="form-select"
+                  id="medecin_id"
+                  name="medecin_id"
+                  [(ngModel)]="appointmentData.medecin_id"
+                  required
+                >
+                  <option value="0">Sélectionnez un médecin</option>
+                  <option *ngFor="let medecin of medecins" [value]="medecin.id">
+                    {{ medecin.nom_complet }} - {{ medecin.specialite }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Hidden input for single doctor -->
+              <input 
+                *ngIf="medecins.length === 1" 
+                type="hidden" 
+                name="medecin_id" 
+                [(ngModel)]="appointmentData.medecin_id"
+              >
+
+              <!-- Date and Time -->
+              <div class="mb-3">
+                <label for="date_rdv" class="form-label">Date et heure du rendez-vous *</label>
+                <input
+                  type="datetime-local"
+                  class="form-control"
+                  id="date_rdv"
+                  name="date_rdv"
+                  [(ngModel)]="appointmentData.date_rdv"
+                  required
+                  [class.is-invalid]="appointmentData.date_rdv && !isTimeSlotValid()"
+                >
+                <div class="invalid-feedback" *ngIf="appointmentData.date_rdv && !isTimeSlotValid()">
+                  {{ getTimeSlotError() }}
+                </div>
+                <div class="form-text">
+                  <i class="fas fa-info-circle me-1"></i>
+                  Horaires disponibles : Lun-Ven 8h-18h, Sam 9h-12h
+                </div>
+              </div>
+
+              <!-- Appointment Preview -->
+              <div class="alert alert-info" *ngIf="appointmentData.date_rdv && isTimeSlotValid()">
+                <h6 class="alert-heading">
+                  <i class="fas fa-calendar-check me-2"></i>
+                  Résumé du rendez-vous
+                </h6>
+                <p class="mb-1">
+                  <strong>Médecin :</strong> {{ getSelectedMedecin()?.nom_complet }}
+                </p>
+                <p class="mb-0">
+                  <strong>Date :</strong> {{ formatDateTime(appointmentData.date_rdv) }}
+                </p>
+              </div>
+
+              <!-- Appointment Type -->
+              <div class="mb-3">
+                <label for="motif" class="form-label">Motif de la consultation *</label>
+                <div class="mb-2">
+                  <div class="d-flex flex-wrap gap-2">
+                    <button
+                      *ngFor="let type of appointmentTypes"
+                      type="button"
+                      class="btn btn-outline-primary btn-sm"
+                      [class.active]="appointmentData.motif === type"
+                      (click)="onMotifSelect(type)"
+                    >
+                      {{ type }}
+                    </button>
+                  </div>
+                </div>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="motif"
+                  name="motif"
+                  [(ngModel)]="appointmentData.motif"
+                  required
+                  placeholder="Ou tapez votre motif personnalisé..."
+                >
+              </div>
+
+              <!-- Notes -->
+              <div class="mb-4">
+                <label for="notes" class="form-label">Notes additionnelles</label>
+                <textarea
+                  class="form-control"
+                  id="notes"
+                  name="notes"
+                  [(ngModel)]="appointmentData.notes"
+                  rows="3"
+                  placeholder="Informations complémentaires, symptômes, questions à poser au médecin..."
+                ></textarea>
+                <div class="form-text">
+                  Ces informations aideront le médecin à mieux préparer votre consultation.
+                </div>
+              </div>
+
+              <!-- Submit Button -->
+              <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary me-md-2"
+                  routerLink="/appointments"
+                >
+                  <i class="fas fa-arrow-left me-2"></i>
+                  Retour
+                </button>
+                <button
+                  type="submit"
+                  class="btn btn-primary"
+                  [disabled]="!isFormValid() || isLoading || !isTimeSlotValid()"
+                >
+                  <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+                  <i *ngIf="!isLoading" class="fas fa-check me-2"></i>
+                  {{ isLoading ? 'Création...' : 'Confirmer le rendez-vous' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

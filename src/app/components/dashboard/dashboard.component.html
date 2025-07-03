@@ -1,0 +1,184 @@
+<div class="container py-4">
+  <div class="fade-in">
+    <!-- Welcome Header -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="welcome-header">
+          <h1 class="display-6 fw-bold text-primary">
+            <i class="fas fa-home me-3"></i>
+            Tableau de bord
+          </h1>
+          <p class="lead text-muted" *ngIf="currentPatient">
+            Bienvenue, {{ currentPatient.prenom }} {{ currentPatient.nom }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="dashboard-grid mb-4">
+      <div class="stats-card">
+        <div class="icon">
+          <i class="fas fa-calendar-check"></i>
+        </div>
+        <div class="number">{{ totalAppointments }}</div>
+        <div class="label">Rendez-vous total</div>
+      </div>
+      
+      <div class="stats-card">
+        <div class="icon">
+          <i class="fas fa-clock"></i>
+        </div>
+        <div class="number">{{ pendingAppointments }}</div>
+        <div class="label">En attente</div>
+      </div>
+      
+      <div class="stats-card">
+        <div class="icon">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="number">{{ confirmedAppointments }}</div>
+        <div class="label">Confirmés</div>
+      </div>
+      
+      <div class="stats-card">
+        <div class="icon">
+          <i class="fas fa-star"></i>
+        </div>
+        <div class="number">{{ completedAppointments }}</div>
+        <div class="label">Terminés</div>
+      </div>
+    </div>
+
+    <!-- Doctor Information -->
+    <div class="row mb-4">
+      <div class="col-lg-6">
+        <div class="card h-100">
+          <div class="card-header">
+            <h5 class="mb-0">
+              <i class="fas fa-user-md me-2"></i>
+              Votre Médecin
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="doctor-card">
+              <div class="d-flex align-items-center">
+                <div class="doctor-avatar me-3">
+                  <i class="fas fa-user-md"></i>
+                </div>
+                <div class="doctor-info">
+                  <h5>Dr Ahmed Samir</h5>
+                  <p><i class="fas fa-stethoscope me-2"></i>Médecin Généraliste</p>
+                  <p><i class="fas fa-phone me-2"></i>+33 1 23 45 67 89</p>
+                  <p><i class="fas fa-envelope me-2"></i>ahmed.samir@clinique.com</p>
+                  <p><i class="fas fa-clock me-2"></i>Lun-Ven 8h-18h, Sam 9h-12h</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Quick Actions -->
+      <div class="col-lg-6">
+        <div class="card h-100">
+          <div class="card-header">
+            <h5 class="mb-0">
+              <i class="fas fa-bolt me-2"></i>
+              Actions rapides
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="d-grid gap-3">
+              <a routerLink="/book-appointment" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus-circle me-2"></i>
+                Prendre un nouveau rendez-vous
+              </a>
+              <a routerLink="/appointments" class="btn btn-outline-primary btn-lg">
+                <i class="fas fa-calendar-alt me-2"></i>
+                Voir tous mes rendez-vous
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upcoming Appointments -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0">
+              <i class="fas fa-calendar-alt me-2"></i>
+              Prochains rendez-vous
+            </h5>
+          </div>
+          <div class="card-body">
+            <div *ngIf="isLoading" class="text-center py-4">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Chargement...</span>
+              </div>
+              <p class="mt-2 text-muted">Chargement des rendez-vous...</p>
+            </div>
+
+            <div *ngIf="error" class="alert alert-danger">
+              <i class="fas fa-exclamation-triangle me-2"></i>
+              {{ error }}
+            </div>
+
+            <div *ngIf="!isLoading && !error">
+              <div *ngIf="upcomingAppointments.length === 0" class="text-center py-4">
+                <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Aucun rendez-vous à venir</h5>
+                <p class="text-muted">Vous n'avez pas de rendez-vous programmés prochainement.</p>
+                <a routerLink="/book-appointment" class="btn btn-primary">
+                  <i class="fas fa-plus-circle me-2"></i>
+                  Prendre un rendez-vous
+                </a>
+              </div>
+
+              <div *ngIf="upcomingAppointments.length > 0" class="row">
+                <div class="col-lg-4 mb-3" *ngFor="let appointment of upcomingAppointments">
+                  <div class="card appointment-card h-100">
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="card-title mb-0">
+                          <i class="fas fa-user-md me-2"></i>
+                          Dr {{ appointment.medecin?.prenom }} {{ appointment.medecin?.nom }}
+                        </h6>
+                        <span class="badge" [class]="getStatusClass(appointment.statut)">
+                          {{ getStatusLabel(appointment.statut) }}
+                        </span>
+                      </div>
+                      
+                      <p class="card-text">
+                        <i class="fas fa-calendar me-2"></i>
+                        {{ formatDate(appointment.date_rdv) }}
+                      </p>
+                      <p class="card-text">
+                        <i class="fas fa-clock me-2"></i>
+                        {{ formatTime(appointment.date_rdv) }}
+                      </p>
+                      <p class="card-text">
+                        <i class="fas fa-notes-medical me-2"></i>
+                        {{ appointment.motif }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div *ngIf="upcomingAppointments.length > 0" class="text-center mt-3">
+                <a routerLink="/appointments" class="btn btn-outline-primary">
+                  Voir tous mes rendez-vous
+                  <i class="fas fa-arrow-right ms-2"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

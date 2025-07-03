@@ -1,0 +1,181 @@
+<div class="auth-container">
+  <div class="auth-card fade-in">
+    <h2>
+      <i class="fas fa-user-plus text-primary me-2"></i>
+      Inscription
+    </h2>
+    
+    <div class="alert alert-danger" *ngIf="errorMessage">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      {{ errorMessage }}
+    </div>
+    
+    <form (ngSubmit)="onSubmit()" #registerForm="ngForm">
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="prenom" class="form-label">Prénom *</label>
+          <input
+            type="text"
+            class="form-control"
+            id="prenom"
+            name="prenom"
+            [(ngModel)]="registerData.prenom"
+            required
+            minlength="2"
+            placeholder="Votre prénom"
+          >
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="nom" class="form-label">Nom *</label>
+          <input
+            type="text"
+            class="form-control"
+            id="nom"
+            name="nom"
+            [(ngModel)]="registerData.nom"
+            required
+            minlength="2"
+            placeholder="Votre nom"
+          >
+        </div>
+      </div>
+      
+      <div class="mb-3">
+        <label for="email" class="form-label">Adresse email *</label>
+        <input
+          type="email"
+          class="form-control"
+          id="email"
+          name="email"
+          [(ngModel)]="registerData.email"
+          required
+          email
+          placeholder="votre.email@exemple.com"
+        >
+      </div>
+      
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="telephone" class="form-label">Téléphone *</label>
+          <input
+            type="tel"
+            class="form-control"
+            id="telephone"
+            name="telephone"
+            [(ngModel)]="registerData.telephone"
+            required
+            placeholder="0123456789"
+          >
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="date_naissance" class="form-label">Date de naissance *</label>
+          <input
+            type="date"
+            class="form-control"
+            id="date_naissance"
+            name="date_naissance"
+            [(ngModel)]="registerData.date_naissance"
+            required
+          >
+        </div>
+      </div>
+      
+      <div class="mb-3">
+        <label for="adresse" class="form-label">Adresse</label>
+        <textarea
+          class="form-control"
+          id="adresse"
+          name="adresse"
+          [(ngModel)]="registerData.adresse"
+          rows="2"
+          placeholder="Votre adresse complète"
+        ></textarea>
+      </div>
+      
+      <div class="mb-3">
+        <label for="antecedents_medicaux" class="form-label">Antécédents médicaux</label>
+        <textarea
+          class="form-control"
+          id="antecedents_medicaux"
+          name="antecedents_medicaux"
+          [(ngModel)]="registerData.antecedents_medicaux"
+          rows="2"
+          placeholder="Allergies, maladies chroniques, traitements en cours..."
+        ></textarea>
+      </div>
+      
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="contact_urgence_nom" class="form-label">Contact d'urgence - Nom *</label>
+          <input
+            type="text"
+            class="form-control"
+            id="contact_urgence_nom"
+            name="contact_urgence_nom"
+            [(ngModel)]="registerData.contact_urgence_nom"
+            required
+            placeholder="Nom du contact d'urgence"
+          >
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="contact_urgence_telephone" class="form-label">Contact d'urgence - Téléphone *</label>
+          <input
+            type="tel"
+            class="form-control"
+            id="contact_urgence_telephone"
+            name="contact_urgence_telephone"
+            [(ngModel)]="registerData.contact_urgence_telephone"
+            required
+            placeholder="0123456789"
+          >
+        </div>
+      </div>
+      
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="password" class="form-label">Mot de passe *</label>
+          <input
+            type="password"
+            class="form-control"
+            id="password"
+            name="password"
+            [(ngModel)]="registerData.password"
+            required
+            minlength="6"
+            placeholder="Au moins 6 caractères"
+          >
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="confirm_password" class="form-label">Confirmer le mot de passe *</label>
+          <input
+            type="password"
+            class="form-control"
+            id="confirm_password"
+            name="confirm_password"
+            [(ngModel)]="registerData.confirm_password"
+            required
+            minlength="6"
+            placeholder="Confirmez votre mot de passe"
+          >
+        </div>
+      </div>
+      
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="registerForm.invalid || isLoading"
+      >
+        <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+        <i *ngIf="!isLoading" class="fas fa-user-plus me-2"></i>
+        {{ isLoading ? 'Inscription...' : 'S\'inscrire' }}
+      </button>
+    </form>
+    
+    <div class="text-center mt-3">
+      <p class="mb-0">
+        Déjà un compte ?
+        <a routerLink="/login" class="ms-1">Se connecter</a>
+      </p>
+    </div>
+  </div>
+</div>

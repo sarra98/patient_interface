@@ -1,0 +1,222 @@
+.doctor-card {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 15px;
+  transition: all 0.3s ease;
+}
+
+.doctor-card:hover {
+  background: #e9ecef;
+  transform: translateY(-2px);
+}
+
+.doctor-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+}
+
+.doctor-info h6 {
+  color: #333;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.doctor-info p {
+  color: #6c757d;
+  margin-bottom: 5px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+}
+
+.doctor-info p i {
+  width: 18px;
+  color: #007bff;
+}
+
+.form-control:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.form-select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.btn-outline-primary.btn-sm {
+  padding: 5px 12px;
+  font-size: 0.875rem;
+  border-radius: 15px;
+  transition: all 0.3s ease;
+}
+
+.btn-outline-primary.btn-sm:hover,
+.btn-outline-primary.btn-sm.active {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  border-color: #007bff;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(0, 123, 255, 0.3);
+}
+
+.alert-info {
+  background: linear-gradient(135deg, rgba(23, 162, 184, 0.1) 0%, rgba(19, 132, 150, 0.1) 100%);
+  border-left: 4px solid #17a2b8;
+  border-radius: 10px;
+}
+
+.alert-heading {
+  color: #0c5460;
+  font-weight: 600;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  border: none;
+  padding: 12px 25px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 123, 255, 0.4);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-outline-secondary {
+  border-width: 2px;
+  font-weight: 500;
+}
+
+.btn-outline-secondary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(108, 117, 125, 0.3);
+}
+
+.form-text {
+  color: #6c757d;
+  font-size: 0.875rem;
+}
+
+.form-text i {
+  color: #007bff;
+}
+
+.is-invalid {
+  border-color: #dc3545;
+}
+
+.invalid-feedback {
+  display: block;
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 5px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .doctor-card {
+    padding: 15px;
+  }
+  
+  .doctor-avatar {
+    width: 50px;
+    height: 50px;
+    font-size: 1.25rem;
+  }
+  
+  .d-flex.flex-wrap.gap-2 {
+    gap: 0.5rem !important;
+  }
+  
+  .btn-outline-primary.btn-sm {
+    padding: 4px 10px;
+    font-size: 0.8rem;
+  }
+  
+  .d-grid.gap-2.d-md-flex {
+    display: flex !important;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .justify-content-md-end {
+    justify-content: stretch !important;
+  }
+}
+
+/* Animation for form elements */
+.form-control,
+.form-select {
+  transition: all 0.3s ease;
+}
+
+.card {
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+/* Loading state for buttons */
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Custom checkbox and radio styling */
+.form-check-input:checked {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.form-check-input:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+}
+
+/* Textarea styling */
+textarea.form-control {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* Button group styling */
+.d-flex.flex-wrap.gap-2 .btn {
+  margin-bottom: 5px;
+}
+
+/* Alert styling enhancements */
+.alert {
+  border-radius: 10px;
+  border: none;
+}
+
+.alert-success {
+  background: linear-gradient(135deg, rgba(40, 167, 69, 0.1) 0%, rgba(30, 126, 52, 0.1) 100%);
+  color: #155724;
+  border-left: 4px solid #28a745;
+}
+
+.alert-danger {
+  background: linear-gradient(135deg, rgba(220, 53, 69, 0.1) 0%, rgba(200, 35, 51, 0.1) 100%);
+  color: #721c24;
+  border-left: 4px solid #dc3545;
+}

@@ -1,0 +1,70 @@
+<div class="auth-container">
+  <div class="auth-card fade-in">
+    <h2>
+      <i class="fas fa-stethoscope text-primary me-2"></i>
+      Connexion
+    </h2>
+    
+    <div class="alert alert-danger" *ngIf="errorMessage">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      {{ errorMessage }}
+    </div>
+    
+    <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+      <div class="mb-3">
+        <label for="email" class="form-label">Adresse email</label>
+        <input
+          type="email"
+          class="form-control"
+          id="email"
+          name="email"
+          [(ngModel)]="email"
+          required
+          email
+          #emailInput="ngModel"
+          placeholder="votre.email@exemple.com"
+        >
+        <div class="text-danger mt-1" *ngIf="emailInput.invalid && emailInput.touched">
+          <small *ngIf="emailInput.errors?.['required']">L'email est requis</small>
+          <small *ngIf="emailInput.errors?.['email']">Format d'email invalide</small>
+        </div>
+      </div>
+      
+      <div class="mb-3">
+        <label for="password" class="form-label">Mot de passe</label>
+        <input
+          type="password"
+          class="form-control"
+          id="password"
+          name="password"
+          [(ngModel)]="password"
+          required
+          minlength="6"
+          #passwordInput="ngModel"
+          placeholder="Votre mot de passe"
+        >
+        <div class="text-danger mt-1" *ngIf="passwordInput.invalid && passwordInput.touched">
+          <small *ngIf="passwordInput.errors?.['required']">Le mot de passe est requis</small>
+          <small *ngIf="passwordInput.errors?.['minlength']">Le mot de passe doit contenir au moins 6 caractères</small>
+        </div>
+      </div>
+      
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="loginForm.invalid || isLoading"
+      >
+        <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+        <i *ngIf="!isLoading" class="fas fa-sign-in-alt me-2"></i>
+        {{ isLoading ? 'Connexion...' : 'Se connecter' }}
+      </button>
+    </form>
+    
+    <div class="text-center mt-3">
+      <p class="mb-0">
+        Pas encore de compte ?
+        <a routerLink="/register" class="ms-1">S'inscrire</a>
+      </p>
+    </div>
+  </div>
+</div>

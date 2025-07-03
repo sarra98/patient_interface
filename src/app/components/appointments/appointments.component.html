@@ -1,0 +1,196 @@
+<div class="container py-4">
+  <div class="fade-in">
+    <!-- Page Header -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h1 class="h3 mb-1">
+                  <i class="fas fa-calendar-alt me-2 text-primary"></i>
+                  Mes Rendez-vous
+                </h1>
+                <p class="text-muted mb-0">Gérez vos rendez-vous médicaux</p>
+              </div>
+              <a routerLink="/book-appointment" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>
+                Nouveau RDV
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alerts -->
+    <div class="alert alert-success alert-dismissible fade show" *ngIf="successMessage">
+      <i class="fas fa-check-circle me-2"></i>
+      {{ successMessage }}
+      <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+    </div>
+
+    <div class="alert alert-danger alert-dismissible fade show" *ngIf="error">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      {{ error }}
+      <button type="button" class="btn-close" (click)="error = ''"></button>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex flex-wrap gap-2">
+              <button 
+                class="btn" 
+                [class]="getFilterButtonClass('all')"
+                (click)="applyFilter('all')"
+              >
+                <i class="fas fa-list me-2"></i>
+                Tous ({{ appointmentCounts.all }})
+              </button>
+              <button 
+                class="btn" 
+                [class]="getFilterButtonClass('upcoming')"
+                (click)="applyFilter('upcoming')"
+              >
+                <i class="fas fa-clock me-2"></i>
+                À venir ({{ appointmentCounts.upcoming }})
+              </button>
+              <button 
+                class="btn" 
+                [class]="getFilterButtonClass('past')"
+                (click)="applyFilter('past')"
+              >
+                <i class="fas fa-history me-2"></i>
+                Passés ({{ appointmentCounts.past }})
+              </button>
+              <button 
+                class="btn" 
+                [class]="getFilterButtonClass('cancelled')"
+                (click)="applyFilter('cancelled')"
+              >
+                <i class="fas fa-times-circle me-2"></i>
+                Annulés ({{ appointmentCounts.cancelled }})
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Chargement...</span>
+      </div>
+      <p class="mt-3 text-muted">Chargement de vos rendez-vous...</p>
+    </div>
+
+    <!-- Appointments Table -->
+    <div *ngIf="!isLoading" class="card">
+      <div class="card-header">
+        <h5 class="mb-0">
+          <i class="fas fa-table me-2"></i>
+          {{ currentFilter === 'all' ? 'Tous les rendez-vous' : 
+             currentFilter === 'upcoming' ? 'Rendez-vous à venir' :
+             currentFilter === 'past' ? 'Rendez-vous passés' : 'Rendez-vous annulés' }}
+          <span class="badge bg-primary ms-2">{{ filteredAppointments.length }}</span>
+        </h5>
+      </div>
+      
+      <div class="card-body p-0" *ngIf="filteredAppointments.length > 0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th><i class="fas fa-user-md me-2"></i>Médecin</th>
+                <th><i class="fas fa-calendar me-2"></i>Date</th>
+                <th><i class="fas fa-clock me-2"></i>Heure</th>
+                <th><i class="fas fa-notes-medical me-2"></i>Motif</th>
+                <th><i class="fas fa-info-circle me-2"></i>Statut</th>
+                <th><i class="fas fa-comment me-2"></i>Notes</th>
+                <th><i class="fas fa-cogs me-2"></i>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let appointment of filteredAppointments" 
+                  [class.table-secondary]="isPastAppointment(appointment) || appointment.statut === 'annule'">
+                <td>
+                  <div class="d-flex align-items-center">
+                    <div class="doctor-avatar-sm me-2">
+                      <i class="fas fa-user-md"></i>
+                    </div>
+                    <div>
+                      <strong>Dr {{ appointment.medecin?.prenom }} {{ appointment.medecin?.nom }}</strong>
+                      <br>
+                      <small class="text-muted">{{ appointment.medecin?.specialite }}</small>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <strong>{{ formatDate(appointment.date_rdv) }}</strong>
+                </td>
+                <td>
+                  <span class="badge bg-light text-dark">
+                    <i class="fas fa-clock me-1"></i>
+                    {{ formatTime(appointment.date_rdv) }}
+                  </span>
+                </td>
+                <td>{{ appointment.motif }}</td>
+                <td>
+                  <span class="badge" [class]="getStatusClass(appointment.statut)">
+                    {{ getStatusLabel(appointment.statut) }}
+                  </span>
+                </td>
+                <td>
+                  <span *ngIf="appointment.notes; else noNotes">{{ appointment.notes }}</span>
+                  <ng-template #noNotes>
+                    <span class="text-muted">-</span>
+                  </ng-template>
+                </td>
+                <td>
+                  <div class="btn-group" role="group">
+                    <button 
+                      *ngIf="canCancelAppointment(appointment)"
+                      class="btn btn-outline-danger btn-sm"
+                      (click)="cancelAppointment(appointment)"
+                      title="Annuler le rendez-vous"
+                    >
+                      <i class="fas fa-times"></i>
+                    </button>
+                    <button 
+                      *ngIf="!canCancelAppointment(appointment) && appointment.statut !== 'annule'"
+                      class="btn btn-outline-secondary btn-sm"
+                      disabled
+                      title="Impossible d'annuler (moins de 24h avant le RDV)"
+                    >
+                      <i class="fas fa-ban"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <!-- Empty State -->
+      <div class="card-body text-center py-5" *ngIf="filteredAppointments.length === 0">
+        <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
+        <h5 class="text-muted">Aucun rendez-vous trouvé</h5>
+        <p class="text-muted mb-4">
+          {{ currentFilter === 'all' ? 'Vous n\'avez pas encore de rendez-vous.' :
+             currentFilter === 'upcoming' ? 'Vous n\'avez pas de rendez-vous à venir.' :
+             currentFilter === 'past' ? 'Vous n\'avez pas de rendez-vous passés.' : 
+             'Vous n\'avez pas de rendez-vous annulés.' }}
+        </p>
+        <a routerLink="/book-appointment" class="btn btn-primary" *ngIf="currentFilter === 'all' || currentFilter === 'upcoming'">
+          <i class="fas fa-plus me-2"></i>
+          Prendre un rendez-vous
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
