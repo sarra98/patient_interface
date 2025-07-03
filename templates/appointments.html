@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes Rendez-vous - Secrétaire Médicale</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-brand, .navbar-nav .nav-link {
+            color: white !important;
+        }
+        
+        .navbar-brand:hover, .navbar-nav .nav-link:hover {
+            color: #f8f9fa !important;
+        }
+        
+        .main-content {
+            padding: 30px 0;
+        }
+        
+        .appointments-header {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .appointments-table {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        
+        .table {
+            margin-bottom: 0;
+        }
+        
+        .table th {
+            border-top: none;
+            border-bottom: 2px solid #e9ecef;
+            font-weight: 600;
+            color: #667eea;
+            padding: 15px;
+        }
+        
+        .table td {
+            padding: 15px;
+            vertical-align: middle;
+            border-top: 1px solid #f1f3f4;
+        }
+        
+        .appointment-status {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            text-align: center;
+        }
+        
+        .status-planifie {
+            background: #cce5ff;
+            color: #0066cc;
+        }
+        
+        .status-confirme {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-annule {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-termine {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 0.875rem;
+            border-radius: 20px;
+            margin: 2px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 60px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: #dee2e6;
+        }
+        
+        .filter-bar {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .appointment-date {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .appointment-time {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .appointment-motif {
+            font-weight: 500;
+        }
+        
+        .doctor-name {
+            color: #667eea;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="/dashboard">
+                <i class="fas fa-stethoscope me-2"></i>
+                Secrétaire Médicale
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/dashboard">
+                    <i class="fas fa-home me-1"></i>
+                    Accueil
+                </a>
+                <a class="nav-link active" href="/appointments">
+                    <i class="fas fa-calendar-alt me-1"></i>
+                    Mes RDV
+                </a>
+                <a class="nav-link" href="/book-appointment">
+                    <i class="fas fa-plus me-1"></i>
+                    Nouveau RDV
+                </a>
+                <a class="nav-link" href="/profile">
+                    <i class="fas fa-user me-1"></i>
+                    Mon profil
+                </a>
+                <a class="nav-link" href="#" onclick="logout()">
+                    <i class="fas fa-sign-out-alt me-1"></i>
+                    Déconnexion
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="container">
+            <div class="appointments-header">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h2>
+                            <i class="fas fa-calendar-alt me-2 text-primary"></i>
+                            Mes Rendez-vous
+                        </h2>
+                        <p class="text-muted mb-0">Consultez et gérez tous vos rendez-vous avec le Dr Ahmed Samir</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <a href="/book-appointment" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>
+                            Nouveau Rendez-vous
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-bar">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <label class="form-label">Filtrer par statut:</label>
+                        <select class="form-select" id="statusFilter" onchange="filterAppointments()">
+                            <option value="">Tous les statuts</option>
+                            <option value="planifie">Planifiés</option>
+                            <option value="confirme">Confirmés</option>
+                            <option value="termine">Terminés</option>
+                            <option value="annule">Annulés</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Rechercher:</label>
+                        <input type="text" class="form-control" id="searchInput" placeholder="Rechercher par motif..." onkeyup="filterAppointments()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="appointments-table">
+                <div id="appointments-loading" class="loading">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Chargement...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Chargement de vos rendez-vous...</p>
+                </div>
+                
+                <div id="appointments-content" style="display: none;">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date & Heure</th>
+                                    <th>Motif</th>
+                                    <th>Médecin</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="appointments-table-body">
+                                <!-- Appointments will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div id="appointments-empty" class="empty-state" style="display: none;">
+                    <i class="fas fa-calendar-plus"></i>
+                    <h5>Aucun rendez-vous trouvé</h5>
+                    <p class="text-muted">Vous n'avez pas encore de rendez-vous. Planifiez votre première consultation avec le Dr Ahmed Samir.</p>
+                    <a href="/book-appointment" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>
+                        Prendre rendez-vous
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for appointment details -->
+    <div class="modal fade" id="appointmentModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Détails du Rendez-vous</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    <!-- Content will be loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let allAppointments = [];
+        
+        // Check if user is logged in
+        function checkAuth() {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                window.location.href = '/login';
+                return false;
+            }
+            return true;
+        }
+
+        // Get authentication headers
+        function getAuthHeaders() {
+            const token = localStorage.getItem('access_token');
+            return {
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': 'application/json'
+            };
+        }
+
+        // Load appointments
+        async function loadAppointments() {
+            try {
+                const response = await fetch('/api/appointments', {
+                    headers: getAuthHeaders()
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    allAppointments = data.appointments;
+                    displayAppointments(allAppointments);
+                } else {
+                    throw new Error('Failed to load appointments');
+                }
+            } catch (error) {
+                console.error('Error loading appointments:', error);
+                document.getElementById('appointments-loading').style.display = 'none';
+                document.getElementById('appointments-empty').style.display = 'block';
+            }
+        }
+
+        // Display appointments
+        function displayAppointments(appointments) {
+            const loadingDiv = document.getElementById('appointments-loading');
+            const contentDiv = document.getElementById('appointments-content');
+            const emptyDiv = document.getElementById('appointments-empty');
+            const tbody = document.getElementById('appointments-table-body');
+            
+            loadingDiv.style.display = 'none';
+            
+            if (appointments.length === 0) {
+                contentDiv.style.display = 'none';
+                emptyDiv.style.display = 'block';
+                return;
+            }
+            
+            // Sort appointments by date (newest first)
+            appointments.sort((a, b) => new Date(b.date_rdv) - new Date(a.date_rdv));
+            
+            tbody.innerHTML = appointments.map(appointment => `
+                <tr>
+                    <td>
+                        <div class="appointment-date">${formatDate(appointment.date_rdv)}</div>
+                        <div class="appointment-time">${formatTime(appointment.date_rdv)}</div>
+                    </td>
+                    <td class="appointment-motif">${appointment.motif}</td>
+                    <td class="doctor-name">Dr Ahmed Samir</td>
+                    <td>
+                        <span class="appointment-status status-${appointment.statut}">
+                            ${getStatusLabel(appointment.statut)}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-outline-primary btn-sm" onclick="viewAppointment(${appointment.id})">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        ${appointment.statut === 'planifie' ? `
+                            <button class="btn btn-outline-danger btn-sm" onclick="cancelAppointment(${appointment.id})">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        ` : ''}
+                    </td>
+                </tr>
+            `).join('');
+            
+            contentDiv.style.display = 'block';
+            emptyDiv.style.display = 'none';
+        }
+
+        // Filter appointments
+        function filterAppointments() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const searchInput = document.getElementById('searchInput').value.toLowerCase();
+            
+            let filteredAppointments = allAppointments;
+            
+            if (statusFilter) {
+                filteredAppointments = filteredAppointments.filter(apt => apt.statut === statusFilter);
+            }
+            
+            if (searchInput) {
+                filteredAppointments = filteredAppointments.filter(apt => 
+                    apt.motif.toLowerCase().includes(searchInput)
+                );
+            }
+            
+            displayAppointments(filteredAppointments);
+        }
+
+        // View appointment details
+        function viewAppointment(appointmentId) {
+            const appointment = allAppointments.find(apt => apt.id === appointmentId);
+            if (!appointment) return;
+            
+            const modalBody = document.getElementById('modalBody');
+            modalBody.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Date et Heure</h6>
+                        <p>${formatDate(appointment.date_rdv)} à ${formatTime(appointment.date_rdv)}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Durée</h6>
+                        <p>${appointment.duree || 30} minutes</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Motif</h6>
+                        <p>${appointment.motif}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Statut</h6>
+                        <span class="appointment-status status-${appointment.statut}">
+                            ${getStatusLabel(appointment.statut)}
+                        </span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <h6>Médecin</h6>
+                        <p>Dr Ahmed Samir - Médecin Généraliste</p>
+                    </div>
+                </div>
+                ${appointment.notes ? `
+                    <div class="row">
+                        <div class="col-12">
+                            <h6>Notes</h6>
+                            <p>${appointment.notes}</p>
+                        </div>
+                    </div>
+                ` : ''}
+                <div class="row">
+                    <div class="col-12">
+                        <h6>Créé le</h6>
+                        <p>${formatDate(appointment.created_at)}</p>
+                    </div>
+                </div>
+            `;
+            
+            const modal = new bootstrap.Modal(document.getElementById('appointmentModal'));
+            modal.show();
+        }
+
+        // Cancel appointment
+        async function cancelAppointment(appointmentId) {
+            if (!confirm('Êtes-vous sûr de vouloir annuler ce rendez-vous ?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/appointments/${appointmentId}/cancel`, {
+                    method: 'PUT',
+                    headers: getAuthHeaders()
+                });
+                
+                if (response.ok) {
+                    alert('Rendez-vous annulé avec succès');
+                    loadAppointments(); // Reload appointments
+                } else {
+                    const error = await response.json();
+                    alert('Erreur: ' + (error.message || 'Impossible d\'annuler le rendez-vous'));
+                }
+            } catch (error) {
+                console.error('Error canceling appointment:', error);
+                alert('Erreur de connexion. Veuillez réessayer.');
+            }
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('fr-FR', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        // Format time
+        function formatTime(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleTimeString('fr-FR', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Get status label
+        function getStatusLabel(status) {
+            const labels = {
+                'planifie': 'Planifié',
+                'confirme': 'Confirmé',
+                'annule': 'Annulé',
+                'termine': 'Terminé'
+            };
+            return labels[status] || status;
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('patient_data');
+            window.location.href = '/login';
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            if (checkAuth()) {
+                loadAppointments();
+            }
+        });
+    </script>
+</body>
+</html>

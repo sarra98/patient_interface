@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify, send_from_directory
+from flask import Flask, jsonify, send_from_directory, render_template
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from config import Config
@@ -24,19 +24,39 @@ def create_app():
     def health_check():
         return jsonify({'status': 'healthy', 'message': 'Secrétaire Médicale API is running'})
     
-    # Serve Angular app
+    # Serve HTML templates
     @app.route('/')
-    def serve_angular():
-        return send_from_directory(app.static_folder, 'index.html')
-    
-    @app.route('/<path:path>')
-    def serve_angular_routes(path):
-        if path.startswith('api/'):
-            return jsonify({'error': 'API endpoint not found'}), 404
-        try:
-            return send_from_directory(app.static_folder, path)
-        except:
-            return send_from_directory(app.static_folder, 'index.html')
+    def index():
+        return render_template('index.html')
+
+    @app.route('/login')
+    def login():
+        return render_template('login.html')
+
+    @app.route('/register')
+    def register():
+        return render_template('register.html')
+
+    @app.route('/dashboard')
+    def dashboard():
+        return render_template('dashboard.html')
+
+    @app.route('/appointments')
+    def appointments():
+        return render_template('appointments.html')
+
+    @app.route('/book-appointment')
+    def book_appointment():
+        return render_template('book_appointment.html')
+
+    @app.route('/profile')
+    def profile():
+        return render_template('profile.html')
+
+    # Serve static files from dist directory if they exist
+    @app.route('/static/<path:filename>')
+    def serve_static(filename):
+        return send_from_directory(os.path.join(app.root_path, 'dist'), filename)
     
     with app.app_context():
         # Import models to ensure they are registered
