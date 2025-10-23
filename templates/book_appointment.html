@@ -138,6 +138,25 @@
             border-color: #667eea;
             background: #f8f9ff;
         }
+
+        .time-slot.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .time-slot.unavailable {
+            background-color: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .time-slot.unavailable:hover {
+            background-color: #f8d7da;
+            border-color: #dc3545;
+        }
         
         .time-slot.selected {
             border-color: #667eea;
@@ -192,6 +211,10 @@
                 <a class="nav-link active" href="/book-appointment">
                     <i class="fas fa-plus me-1"></i>
                     Nouveau RDV
+                </a>
+                <a class="nav-link" href="/documents">
+                    <i class="fas fa-file-medical me-1"></i>
+                    Documents
                 </a>
                 <a class="nav-link" href="/profile">
                     <i class="fas fa-user me-1"></i>
@@ -375,6 +398,17 @@
         document.getElementById('date').addEventListener('change', function() {
             const selectedDate = this.value;
             if (selectedDate) {
+                // Vérifier si c'est un dimanche
+                const date = new Date(selectedDate);
+                const dayOfWeek = date.getDay(); // 0 = dimanche, 6 = samedi
+
+                if (dayOfWeek === 0) { // Dimanche
+                    alert('❌ Les rendez-vous ne sont pas disponibles le dimanche. Veuillez choisir un autre jour.');
+                    this.value = '';
+                    document.getElementById('time-slots-container').style.display = 'none';
+                    return;
+                }
+
                 loadTimeSlots(selectedDate);
                 updateSummary();
             }
@@ -384,25 +418,77 @@
         function loadTimeSlots(date) {
             const timeSlotsContainer = document.getElementById('time-slots-container');
             const timeSlots = document.getElementById('time-slots');
-            
-            // Generate time slots from 8:00 to 17:30 (exclude 12:00-14:00 for lunch)
+
+            // Vérifier le jour de la semaine
+            const selectedDate = new Date(date);
+            const dayOfWeek = selectedDate.getDay(); // 0 = dimanche, 6 = samedi
+
+            let startHour = 8;
+            let endHour = 18;
+
+            // Règles spéciales pour le samedi
+            if (dayOfWeek === 6) { // Samedi
+                startHour = 8;
+                endHour = 12; // Seulement jusqu'à 12h
+            }
+
+            // Generate time slots selon les règles
             const slots = [];
-            for (let hour = 8; hour < 18; hour++) {
-                if (hour === 12 || hour === 13) continue; // Lunch break
-                
+            for (let hour = startHour; hour < endHour; hour++) {
+                if (hour === 12 || hour === 13) continue; // Pause déjeuner (sauf samedi)
+
                 for (let minute = 0; minute < 60; minute += 30) {
                     const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
                     slots.push(timeString);
                 }
             }
-            
-            timeSlots.innerHTML = slots.map(time => `
-                <div class="time-slot" onclick="selectTimeSlot('${time}')">
-                    ${time}
-                </div>
-            `).join('');
-            
-            timeSlotsContainer.style.display = 'block';
+
+            // Charger les créneaux occupés depuis le serveur
+            loadOccupiedSlots(date, slots);
+        }
+
+        // Charger les créneaux déjà occupés
+        function loadOccupiedSlots(date, availableSlots) {
+            const timeSlots = document.getElementById('time-slots');
+            const timeSlotsContainer = document.getElementById('time-slots-container');
+
+            fetch(`/api/appointments/occupied-slots?date=${date}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const occupiedSlots = data.occupied_slots || [];
+
+                timeSlots.innerHTML = availableSlots.map(time => {
+                    const isOccupied = occupiedSlots.includes(time);
+                    const slotClass = isOccupied ? 'time-slot unavailable' : 'time-slot';
+                    const onclick = isOccupied ? '' : `onclick="selectTimeSlot('${time}')"`;
+                    const icon = isOccupied ? '<i class="fas fa-times text-danger"></i> ' : '';
+
+                    return `
+                        <div class="${slotClass}" ${onclick}>
+                            ${icon}${time}
+                        </div>
+                    `;
+                }).join('');
+
+                timeSlotsContainer.style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Erreur chargement créneaux:', error);
+                // Afficher les créneaux sans vérification en cas d'erreur
+                timeSlots.innerHTML = availableSlots.map(time => `
+                    <div class="time-slot" onclick="selectTimeSlot('${time}')">
+                        ${time}
+                    </div>
+                `).join('');
+
+                timeSlotsContainer.style.display = 'block';
+            });
         }
 
         // Select time slot
@@ -488,25 +574,40 @@
             const finalMotif = motif === 'Autre' ? customMotif : motif;
             const dateTime = `${date}T${time}:00`;
             
+            // Récupérer l'ID du médecin sélectionné
+            const medecinSelect = document.getElementById('medecin');
+            const medecinId = medecinSelect ? parseInt(medecinSelect.value) : 1;
+
             const appointmentData = {
-                medecin_id: 1, // Dr Ahmed Samir's ID
+                medecin_id: medecinId,
                 date_rdv: dateTime,
                 motif: finalMotif,
                 notes: notes || null
             };
+
+            console.log('Verification donnees:');
+            console.log('- Date:', date);
+            console.log('- Heure:', time);
+            console.log('- DateTime:', dateTime);
+            console.log('- Medecin ID:', medecinId);
+            console.log('- Motif:', finalMotif);
             
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Création en cours...';
             
             try {
-                const response = await fetch('/api/appointments', {
+                console.log('Donnees envoyees:', appointmentData);
+
+                const response = await fetch('/api/appointments/', {
                     method: 'POST',
                     headers: getAuthHeaders(),
                     body: JSON.stringify(appointmentData)
                 });
                 
+                console.log('Reponse status:', response.status);
                 const result = await response.json();
-                
+                console.log('Reponse JSON:', result);
+
                 if (response.ok) {
                     messageContainer.innerHTML = `
                         <div class="alert alert-success">
@@ -519,13 +620,16 @@
                         window.location.href = '/appointments';
                     }, 2000);
                 } else {
+                    console.error('Erreur serveur:', result);
+                    const errorMsg = result.error || result.message || 'Erreur lors de la création du rendez-vous';
                     messageContainer.innerHTML = `
                         <div class="alert alert-danger">
                             <i class="fas fa-exclamation-triangle me-2"></i>
-                            ${result.message || 'Erreur lors de la création du rendez-vous'}
+                            ${errorMsg}
+                            ${result.details ? '<br><small>Détails: ' + result.details + '</small>' : ''}
                         </div>
                     `;
-                    
+
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = '<i class="fas fa-calendar-check me-2"></i>Confirmer le rendez-vous';
                 }

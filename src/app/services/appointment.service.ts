@@ -41,6 +41,8 @@ export interface CreateAppointmentRequest {
 }
 
 export interface UpdateAppointmentRequest {
+  date_rdv?: string;
+  motif?: string;
   statut?: 'planifie' | 'confirme' | 'annule' | 'termine';
   notes?: string;
 }
@@ -110,4 +112,6 @@ export class AppointmentService {
       default: return 'bg-secondary';
     }
   }
+
+
 }

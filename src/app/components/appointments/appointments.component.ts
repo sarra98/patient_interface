@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { RouterModule, Router } from '@angular/router';
 import { AppointmentService, Appointment } from '../../services/appointment.service';
 
 @Component({
   selector: 'app-appointments',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './appointments.component.html',
   styleUrls: ['./appointments.component.css']
 })
@@ -18,7 +19,13 @@ export class AppointmentsComponent implements OnInit {
   successMessage = '';
   currentFilter = 'all';
 
-  constructor(private appointmentService: AppointmentService) {}
+  showEditModal = false;
+  editAppointmentData: any = null;
+
+  constructor(
+    private appointmentService: AppointmentService,
+    private router: Router
+  ) {}
 
   ngOnInit() {
     this.loadAppointments();
@@ -67,6 +74,44 @@ export class AppointmentsComponent implements OnInit {
     }
   }
 
+  editAppointment(appointment: Appointment) {
+    // Ouvre le modal et clone les données pour édition
+    this.editAppointmentData = { ...appointment };
+    // Pour datetime-local, il faut un format 'YYYY-MM-DDTHH:mm'
+    this.editAppointmentData.date_rdv = this.editAppointmentData.date_rdv?.slice(0, 16);
+    this.showEditModal = true;
+  }
+
+  closeEditModal() {
+    this.showEditModal = false;
+    this.editAppointmentData = null;
+  }
+
+  saveEditAppointment() {
+    if (!this.editAppointmentData) return;
+
+    // Préparer les données avec la date au bon format
+    const updateData = { ...this.editAppointmentData };
+    if (updateData.date_rdv) {
+      // Convertir la date locale en ISO pour le serveur
+      const localDate = new Date(updateData.date_rdv);
+      updateData.date_rdv = localDate.toISOString();
+    }
+
+    this.appointmentService.updateAppointment(this.editAppointmentData.id, updateData).subscribe({
+      next: (_response) => {
+        this.successMessage = 'Rendez-vous modifié avec succès';
+        this.closeEditModal();
+        this.loadAppointments();
+        setTimeout(() => this.successMessage = '', 5000);
+      },
+      error: (error) => {
+        this.error = error.error?.error || 'Erreur lors de la modification';
+        setTimeout(() => this.error = '', 5000);
+      }
+    });
+  }
+
   formatDate(dateString: string): string {
     const date = new Date(dateString);
     return date.toLocaleDateString('fr-FR', {
@@ -97,9 +142,19 @@ export class AppointmentsComponent implements OnInit {
     const aptDate = new Date(appointment.date_rdv);
     const now = new Date();
     const hoursDiff = (aptDate.getTime() - now.getTime()) / (1000 * 3600);
-    
-    return hoursDiff > 24 && 
-           appointment.statut !== 'annule' && 
+
+    return hoursDiff > 24 &&
+           appointment.statut !== 'annule' &&
+           appointment.statut !== 'termine';
+  }
+
+  canEditAppointment(appointment: Appointment): boolean {
+    const aptDate = new Date(appointment.date_rdv);
+    const now = new Date();
+    const hoursDiff = (aptDate.getTime() - now.getTime()) / (1000 * 3600);
+
+    return hoursDiff > 24 &&
+           appointment.statut !== 'annule' &&
            appointment.statut !== 'termine';
   }
 
@@ -109,7 +164,7 @@ export class AppointmentsComponent implements OnInit {
     }
 
     this.appointmentService.cancelAppointment(appointment.id).subscribe({
-      next: (response) => {
+      next: (_response) => {
         this.successMessage = 'Rendez-vous annulé avec succès';
         this.loadAppointments();
         setTimeout(() => this.successMessage = '', 5000);
@@ -119,6 +174,11 @@ export class AppointmentsComponent implements OnInit {
         setTimeout(() => this.error = '', 5000);
       }
     });
+  }
+
+  payAppointment(appointment: Appointment) {
+    // Rediriger vers la page de paiement avec l'ID du rendez-vous
+    this.router.navigate(['/payment', appointment.id]);
   }
 
   isPastAppointment(appointment: Appointment): boolean {

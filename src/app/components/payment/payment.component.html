@@ -1,0 +1,274 @@
+<div class="container py-4">
+  <div class="fade-in">
+    <!-- Page Header -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h1 class="h3 mb-1">
+                  <i class="fas fa-credit-card me-2 text-primary"></i>
+                  Paiement de la consultation
+                </h1>
+                <p class="text-muted mb-0">Réglez votre consultation en toute sécurité</p>
+              </div>
+              <button class="btn btn-outline-secondary" (click)="goBack()">
+                <i class="fas fa-arrow-left me-2"></i>
+                Retour
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alerts -->
+    <div class="alert alert-success alert-dismissible fade show" *ngIf="successMessage">
+      <i class="fas fa-check-circle me-2"></i>
+      {{ successMessage }}
+    </div>
+
+    <div class="alert alert-danger alert-dismissible fade show" *ngIf="error">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      {{ error }}
+      <button type="button" class="btn-close" (click)="error = ''"></button>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Chargement...</span>
+      </div>
+      <p class="mt-3 text-muted">Chargement des informations...</p>
+    </div>
+
+    <!-- Payment Form -->
+    <div *ngIf="!isLoading && appointment" class="row">
+      <!-- Appointment Summary -->
+      <div class="col-lg-4 mb-4">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+              <i class="fas fa-calendar-check me-2"></i>
+              Résumé du rendez-vous
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="appointment-details">
+              <div class="detail-item mb-3">
+                <i class="fas fa-calendar text-primary me-2"></i>
+                <strong>Date :</strong> {{ formatDate(appointment.date_rdv) }}
+              </div>
+              <div class="detail-item mb-3">
+                <i class="fas fa-clock text-primary me-2"></i>
+                <strong>Heure :</strong> {{ formatTime(appointment.date_rdv) }}
+              </div>
+              <div class="detail-item mb-3">
+                <i class="fas fa-user-md text-primary me-2"></i>
+                <strong>Médecin :</strong> Dr {{ appointment.medecin?.prenom }} {{ appointment.medecin?.nom }}
+              </div>
+              <div class="detail-item mb-3">
+                <i class="fas fa-notes-medical text-primary me-2"></i>
+                <strong>Motif :</strong> {{ appointment.motif }}
+              </div>
+              <hr>
+              <div class="detail-item">
+                <i class="fas fa-euro-sign text-success me-2"></i>
+                <strong>Montant à payer :</strong>
+                <span class="h5 text-success ms-2">{{ formatAmount(tarif) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Form -->
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header">
+            <h5 class="mb-0">
+              <i class="fas fa-lock me-2"></i>
+              Informations de paiement
+            </h5>
+          </div>
+          <div class="card-body">
+            <!-- Payment Type Selection -->
+            <div class="mb-4">
+              <label class="form-label">Mode de paiement</label>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <div class="payment-option" [class.active]="paymentType === 'carte_bancaire'">
+                    <input 
+                      type="radio" 
+                      id="carte_bancaire" 
+                      name="paymentType" 
+                      value="carte_bancaire"
+                      [(ngModel)]="paymentType"
+                      (change)="onPaymentTypeChange('carte_bancaire')"
+                    />
+                    <label for="carte_bancaire" class="payment-label">
+                      <i class="fas fa-credit-card fa-2x mb-2"></i>
+                      <div>Carte bancaire</div>
+                      <small class="text-muted">Visa, Mastercard, Amex</small>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <div class="payment-option" [class.active]="paymentType === 'carte_postale'">
+                    <input 
+                      type="radio" 
+                      id="carte_postale" 
+                      name="paymentType" 
+                      value="carte_postale"
+                      [(ngModel)]="paymentType"
+                      (change)="onPaymentTypeChange('carte_postale')"
+                    />
+                    <label for="carte_postale" class="payment-label">
+                      <i class="fas fa-money-check fa-2x mb-2"></i>
+                      <div>Carte postale</div>
+                      <small class="text-muted">Compte CCP</small>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bank Card Form -->
+            <div *ngIf="paymentType === 'carte_bancaire'" class="payment-form">
+              <div class="row">
+                <div class="col-12 mb-3">
+                  <label for="numero_carte" class="form-label">Numéro de carte *</label>
+                  <div class="input-group">
+                    <span class="input-group-text">
+                      <i class="fas fa-credit-card"></i>
+                    </span>
+                    <input 
+                      type="text" 
+                      id="numero_carte" 
+                      class="form-control" 
+                      [(ngModel)]="paymentData.numero_carte"
+                      (input)="onCardNumberInput($event)"
+                      placeholder="1234 5678 9012 3456"
+                      maxlength="19"
+                      required
+                    />
+                    <span class="input-group-text" *ngIf="getCardType()">
+                      <i class="fab fa-cc-{{ getCardType() }}"></i>
+                    </span>
+                  </div>
+                </div>
+                
+                <div class="col-12 mb-3">
+                  <label for="nom_porteur" class="form-label">Nom du porteur *</label>
+                  <input 
+                    type="text" 
+                    id="nom_porteur" 
+                    class="form-control" 
+                    [(ngModel)]="paymentData.nom_porteur"
+                    placeholder="JEAN DUPONT"
+                    style="text-transform: uppercase"
+                    required
+                  />
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                  <label for="date_expiration" class="form-label">Date d'expiration *</label>
+                  <input 
+                    type="text" 
+                    id="date_expiration" 
+                    class="form-control" 
+                    [(ngModel)]="paymentData.date_expiration"
+                    (input)="onExpiryInput($event)"
+                    placeholder="MM/AA"
+                    maxlength="5"
+                    required
+                  />
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                  <label for="cvv" class="form-label">CVV *</label>
+                  <input 
+                    type="password" 
+                    id="cvv" 
+                    class="form-control" 
+                    [(ngModel)]="paymentData.cvv"
+                    placeholder="123"
+                    maxlength="4"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Postal Card Form -->
+            <div *ngIf="paymentType === 'carte_postale'" class="payment-form">
+              <div class="row">
+                <div class="col-md-8 mb-3">
+                  <label for="numero_ccp" class="form-label">Numéro de compte CCP *</label>
+                  <div class="input-group">
+                    <span class="input-group-text">
+                      <i class="fas fa-money-check"></i>
+                    </span>
+                    <input 
+                      type="text" 
+                      id="numero_ccp" 
+                      class="form-control" 
+                      [(ngModel)]="paymentData.numero_ccp"
+                      placeholder="1234567890123456"
+                      maxlength="20"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                  <label for="cle_ccp" class="form-label">Clé *</label>
+                  <input 
+                    type="text" 
+                    id="cle_ccp" 
+                    class="form-control" 
+                    [(ngModel)]="paymentData.cle_ccp"
+                    placeholder="12"
+                    maxlength="2"
+                    required
+                  />
+                </div>
+              </div>
+              
+              <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Carte postale :</strong> Saisissez votre numéro de compte CCP et la clé correspondante.
+              </div>
+            </div>
+
+            <!-- Security Notice -->
+            <div class="security-notice mb-4">
+              <div class="d-flex align-items-center">
+                <i class="fas fa-shield-alt text-success me-2"></i>
+                <small class="text-muted">
+                  Vos informations de paiement sont sécurisées et cryptées. 
+                  Nous ne stockons pas vos données bancaires.
+                </small>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="d-grid">
+              <button 
+                type="button" 
+                class="btn btn-primary btn-lg"
+                (click)="processPayment()"
+                [disabled]="isProcessing"
+              >
+                <span *ngIf="isProcessing" class="spinner-border spinner-border-sm me-2"></span>
+                <i *ngIf="!isProcessing" class="fas fa-lock me-2"></i>
+                {{ isProcessing ? 'Traitement en cours...' : 'Payer ' + formatAmount(tarif) }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

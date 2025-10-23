@@ -1,0 +1,327 @@
+<div class="container py-4">
+  <div class="fade-in">
+    <!-- Page Header -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h1 class="h3 mb-1">
+                  <i class="fas fa-folder-medical me-2 text-primary"></i>
+                  Mes Documents Médicaux
+                </h1>
+                <p class="text-muted mb-0">Gérez vos analyses, ordonnances et documents médicaux</p>
+              </div>
+              <button class="btn btn-primary" (click)="openUploadModal()">
+                <i class="fas fa-plus me-2"></i>
+                Ajouter un document
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alerts -->
+    <div class="alert alert-success alert-dismissible fade show" *ngIf="successMessage">
+      <i class="fas fa-check-circle me-2"></i>
+      {{ successMessage }}
+      <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+    </div>
+
+    <div class="alert alert-danger alert-dismissible fade show" *ngIf="error">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      {{ error }}
+      <button type="button" class="btn-close" (click)="error = ''"></button>
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body">
+            <div class="row align-items-center">
+              <div class="col-md-8">
+                <div class="d-flex flex-wrap gap-2">
+                  <button 
+                    class="btn" 
+                    [class]="currentFilter === 'all' ? 'btn-primary' : 'btn-outline-primary'"
+                    (click)="onFilterChange('all')"
+                  >
+                    <i class="fas fa-list me-2"></i>
+                    Tous ({{ documentCounts.all }})
+                  </button>
+                  <button 
+                    class="btn" 
+                    [class]="currentFilter === 'analyse' ? 'btn-primary' : 'btn-outline-primary'"
+                    (click)="onFilterChange('analyse')"
+                  >
+                    <i class="fas fa-vial me-2"></i>
+                    Analyses ({{ documentCounts.analyse }})
+                  </button>
+                  <button 
+                    class="btn" 
+                    [class]="currentFilter === 'ordonnance' ? 'btn-success' : 'btn-outline-success'"
+                    (click)="onFilterChange('ordonnance')"
+                  >
+                    <i class="fas fa-prescription-bottle-alt me-2"></i>
+                    Ordonnances ({{ documentCounts.ordonnance }})
+                  </button>
+                  <button 
+                    class="btn" 
+                    [class]="currentFilter === 'radio' ? 'btn-warning' : 'btn-outline-warning'"
+                    (click)="onFilterChange('radio')"
+                  >
+                    <i class="fas fa-x-ray me-2"></i>
+                    Radio ({{ documentCounts.radio }})
+                  </button>
+                  <button 
+                    class="btn" 
+                    [class]="currentFilter === 'autre' ? 'btn-info' : 'btn-outline-info'"
+                    (click)="onFilterChange('autre')"
+                  >
+                    <i class="fas fa-file-medical me-2"></i>
+                    Autres ({{ documentCounts.autre }})
+                  </button>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="input-group">
+                  <span class="input-group-text">
+                    <i class="fas fa-search"></i>
+                  </span>
+                  <input 
+                    type="text" 
+                    class="form-control" 
+                    placeholder="Rechercher un document..."
+                    [(ngModel)]="searchTerm"
+                    (input)="onSearchChange()"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Chargement...</span>
+      </div>
+      <p class="mt-3 text-muted">Chargement de vos documents...</p>
+    </div>
+
+    <!-- Documents Grid -->
+    <div *ngIf="!isLoading" class="row">
+      <div class="col-12" *ngIf="filteredDocuments.length === 0">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body text-center py-5">
+            <i class="fas fa-folder-open fa-4x text-muted mb-3"></i>
+            <h5 class="text-muted">Aucun document trouvé</h5>
+            <p class="text-muted mb-4">
+              {{ currentFilter === 'all' ? 'Vous n\'avez pas encore de documents.' : 'Aucun document de ce type.' }}
+            </p>
+            <button class="btn btn-primary" (click)="openUploadModal()">
+              <i class="fas fa-plus me-2"></i>
+              Ajouter votre premier document
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4 col-md-6 mb-4" *ngFor="let document of filteredDocuments">
+        <div class="card border-0 shadow-sm h-100 document-card">
+          <div class="card-header bg-white border-0 pb-0">
+            <div class="d-flex justify-content-between align-items-start">
+              <span class="badge bg-{{ getDocumentTypeColor(document.type_document) }}">
+                <i class="{{ getDocumentTypeIcon(document.type_document) }} me-1"></i>
+                {{ getDocumentTypeLabel(document.type_document) }}
+              </span>
+              <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                  <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <ul class="dropdown-menu">
+                  <li>
+                    <a class="dropdown-item" href="#" (click)="downloadDocument(document); $event.preventDefault()">
+                      <i class="fas fa-download me-2"></i>
+                      Télécharger
+                    </a>
+                  </li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li>
+                    <a class="dropdown-item text-danger" href="#" (click)="deleteDocument(document); $event.preventDefault()">
+                      <i class="fas fa-trash me-2"></i>
+                      Supprimer
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          
+          <div class="card-body">
+            <h6 class="card-title mb-2">{{ document.nom_document }}</h6>
+            
+            <p class="card-text text-muted small mb-3" *ngIf="document.description">
+              {{ document.description }}
+            </p>
+            
+            <div class="document-meta">
+              <div class="row text-muted small">
+                <div class="col-6">
+                  <i class="fas fa-calendar me-1"></i>
+                  {{ formatDate(document.date_upload) }}
+                </div>
+                <div class="col-6 text-end">
+                  <i class="fas fa-file me-1"></i>
+                  {{ formatFileSize(document.taille_fichier) }}
+                </div>
+              </div>
+              
+              <div class="row text-muted small mt-2" *ngIf="document.date_document || document.medecin_prescripteur">
+                <div class="col-12" *ngIf="document.date_document">
+                  <i class="fas fa-calendar-check me-1"></i>
+                  Document du {{ formatDate(document.date_document) }}
+                </div>
+                <div class="col-12" *ngIf="document.medecin_prescripteur">
+                  <i class="fas fa-user-md me-1"></i>
+                  {{ document.medecin_prescripteur }}
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="card-footer bg-white border-0">
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+              <button class="btn btn-outline-primary btn-sm" (click)="downloadDocument(document)">
+                <i class="fas fa-download me-1"></i>
+                Télécharger
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal d'upload -->
+<div class="modal fade" tabindex="-1" [ngClass]="{show: showUploadModal}" [ngStyle]="{display: showUploadModal ? 'block' : 'none', background: 'rgba(0,0,0,0.5)'}">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-plus me-2"></i>
+          Ajouter un document médical
+        </h5>
+        <button type="button" class="btn-close" (click)="closeUploadModal()"></button>
+      </div>
+      
+      <form (ngSubmit)="uploadDocument()" #uploadForm="ngForm">
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="type_document" class="form-label">Type de document *</label>
+              <select 
+                id="type_document" 
+                class="form-select" 
+                [(ngModel)]="uploadData.type_document" 
+                name="type_document" 
+                required
+              >
+                <option value="">Sélectionnez un type</option>
+                <option *ngFor="let type of documentTypes" [value]="type.value">
+                  {{ type.label }}
+                </option>
+              </select>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+              <label for="nom_document" class="form-label">Nom du document *</label>
+              <input 
+                type="text" 
+                id="nom_document" 
+                class="form-control" 
+                [(ngModel)]="uploadData.nom_document" 
+                name="nom_document" 
+                required
+                placeholder="Ex: Analyse de sang du 15/12/2024"
+              />
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label for="file" class="form-label">Fichier *</label>
+            <input 
+              type="file" 
+              id="file" 
+              class="form-control" 
+              (change)="onFileSelected($event)"
+              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+              required
+            />
+            <div class="form-text">
+              Formats acceptés: PDF, JPG, PNG, DOC, DOCX (max 10MB)
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label for="description" class="form-label">Description</label>
+            <textarea 
+              id="description" 
+              class="form-control" 
+              [(ngModel)]="uploadData.description" 
+              name="description"
+              rows="3"
+              placeholder="Description optionnelle du document..."
+            ></textarea>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="date_document" class="form-label">Date du document</label>
+              <input 
+                type="date" 
+                id="date_document" 
+                class="form-control" 
+                [(ngModel)]="uploadData.date_document" 
+                name="date_document"
+              />
+            </div>
+            
+            <div class="col-md-6 mb-3">
+              <label for="medecin_prescripteur" class="form-label">Médecin prescripteur</label>
+              <input 
+                type="text" 
+                id="medecin_prescripteur" 
+                class="form-control" 
+                [(ngModel)]="uploadData.medecin_prescripteur" 
+                name="medecin_prescripteur"
+                placeholder="Dr Nom Prénom"
+              />
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeUploadModal()">
+            Annuler
+          </button>
+          <button 
+            type="submit" 
+            class="btn btn-primary" 
+            [disabled]="isUploading || !uploadForm.form.valid || !uploadData.file"
+          >
+            <span *ngIf="isUploading" class="spinner-border spinner-border-sm me-2"></span>
+            <i *ngIf="!isUploading" class="fas fa-upload me-2"></i>
+            {{ isUploading ? 'Upload en cours...' : 'Ajouter le document' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

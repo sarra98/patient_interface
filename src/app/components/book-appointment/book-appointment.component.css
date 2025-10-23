@@ -220,3 +220,11 @@ textarea.form-control {
   color: #721c24;
   border-left: 4px solid #dc3545;
 }
+.day-header {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+  border-radius: 5px;
+  padding: 6px 0;
+  font-weight: 600;
+  font-size: 0.9rem;
+}

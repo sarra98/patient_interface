@@ -12,7 +12,7 @@
       </button>
       
       <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav me-auto">
+        <ul class="navbar-nav me-auto" *ngIf="currentPatient">
           <li class="nav-item">
             <a class="nav-link" routerLink="/dashboard" routerLinkActive="active">
               <i class="fas fa-home me-1"></i>
@@ -31,8 +31,36 @@
               Nouveau RDV
             </a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/documents" routerLinkActive="active">
+              <i class="fas fa-folder-medical me-1"></i>
+              Mes Documents
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/payment-history" routerLinkActive="active">
+              <i class="fas fa-receipt me-1"></i>
+              Paiements
+            </a>
+          </li>
         </ul>
-        
+
+        <!-- Navigation pour utilisateurs non connectés -->
+        <ul class="navbar-nav me-auto" *ngIf="!currentPatient">
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/login">
+              <i class="fas fa-sign-in-alt me-1"></i>
+              Connexion
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/register">
+              <i class="fas fa-user-plus me-1"></i>
+              Inscription
+            </a>
+          </li>
+        </ul>
+
         <ul class="navbar-nav">
           <li class="nav-item dropdown" *ngIf="currentPatient">
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">

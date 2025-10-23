@@ -168,6 +168,22 @@
                     >
                       <i class="fas fa-ban"></i>
                     </button>
+                    <button
+                      *ngIf="appointment.statut !== 'annule' && !isPastAppointment(appointment)"
+                      class="btn btn-outline-primary btn-sm"
+                      (click)="editAppointment(appointment)"
+                      title="Modifier la date du rendez-vous"
+                    >
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button
+                      *ngIf="appointment.statut === 'confirme'"
+                      class="btn btn-success btn-sm"
+                      (click)="payAppointment(appointment)"
+                      title="Payer la consultation"
+                    >
+                      <i class="fas fa-credit-card"></i>
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -191,6 +207,41 @@
           Prendre un rendez-vous
         </a>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de modification de rendez-vous -->
+<div class="modal fade" tabindex="-1" [ngClass]="{show: showEditModal}" [ngStyle]="{display: showEditModal ? 'block' : 'none', background: 'rgba(0,0,0,0.5)'}">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Modifier le rendez-vous</h5>
+        <button type="button" class="btn-close" (click)="closeEditModal()"></button>
+      </div>
+      <form (ngSubmit)="saveEditAppointment()">
+        <div class="modal-body">
+          <div *ngIf="editAppointmentData">
+            <div class="mb-3">
+              <label for="editDate" class="form-label">Nouvelle date et heure</label>
+              <input id="editDate" name="editDate" type="datetime-local" class="form-control"
+                [(ngModel)]="editAppointmentData.date_rdv" name="date_rdv" required />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Motif</label>
+              <input type="text" class="form-control" [(ngModel)]="editAppointmentData.motif" name="motif" required />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Notes</label>
+              <textarea class="form-control" [(ngModel)]="editAppointmentData.notes" name="notes"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeEditModal()">Annuler</button>
+          <button type="submit" class="btn btn-primary">Enregistrer</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
